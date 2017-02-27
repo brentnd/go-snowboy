@@ -7,19 +7,19 @@ import (
 	"github.com/Kitt-AI/snowboy/swig/Go"
 )
 
-type detector struct {
+type Detector struct {
 	raw snowboydetect.SnowboyDetect
 }
 
-func NewSnowboyDetector(resource, keywords, sensitivity string, audioGain float32) detector {
-	d := detector{}
+func NewSnowboyDetector(resource, keywords, sensitivity string, audioGain float32) Detector {
+	d := Detector{}
 	d.raw = snowboydetect.NewSnowboyDetect(resource, keywords)
 	d.raw.SetSensitivity("0.5")
 	d.raw.SetAudioGain(audioGain)
 	return d
 }
 
-func (d *detector) Close() error {
+func (d *Detector) Close() error {
 	if d.raw != nil {
 		snowboydetect.DeleteSnowboyDetect(d.raw)
 		return nil
@@ -28,7 +28,7 @@ func (d *detector) Close() error {
 	}
 }
 
-func (d *detector) RunDetection(data []byte) int {
+func (d *Detector) RunDetection(data []byte) int {
 	ptr := snowboydetect.SwigcptrInt16_t(unsafe.Pointer(&data[0]))
 	return d.raw.RunDetection(ptr, len(data) / 2 /* len of int16 */)
 }
