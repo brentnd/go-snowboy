@@ -34,5 +34,6 @@ usage: ./build/detect <resource> <keyword.umdl> <audio file>
 ## TODO
 * Support other functions of SnowboyDetect (Reset, GetSensitivity, UpdateModel, NumHotwords, SampleRate, NumChannels, BitsPerSample)
 * Support overloads for RunDetection, Go-style
-* Add DetectFrom(io.Reader) chan Keyword for continuous async detection from a stream, publishing keywords detected onto channel
-* If possible, clean up the way Keywords are declared and returned?
+* Add net/http server style callback registration for different keywords
+* Add DetectFromWav(io.Reader) to run detection on a file
+* If possible, clean up the way Keywords are declared and returned. Use just plain strings?
