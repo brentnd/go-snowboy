@@ -8,17 +8,15 @@ import (
 )
 
 func main() {
-	d := snowboy.Detector{
-		ResourceFilename: "./build/common.res",
-		AudioGain: 1.0,
-	}
-	defer d.Close()
-
-	d.AddHotword(snowboy.Hotword{
+	words := snowboy.Hotwords{}
+	words.Add(snowboy.Hotword{
 		Model: "./build/alexa.umdl",
 		Sensitivity: 0.5,
 		Keyword: snowboy.KeywordAlexa,
 	})
+
+	d := snowboy.NewDetector("./build/common.res", words)
+	defer d.Close()
 
 	wav, err := ioutil.ReadFile("./audio/alexa_request.wav")
 	if err != nil {

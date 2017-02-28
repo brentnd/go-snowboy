@@ -14,11 +14,6 @@ func main() {
 		fmt.Printf("usage: %s <resource> <keyword.umdl> <audio file>\n", os.Args[0])
 		return
 	}
-	d := snowboy.Detector{
-		ResourceFilename: os.Args[1],
-		AudioGain: 1.0,
-	}
-	defer d.Close()
 
 	// Parse keyword from .umdl file path.
 	// If keyword is known (not command line), just use
@@ -27,11 +22,16 @@ func main() {
 	k = strings.TrimRight(k, ".umdl")
 	kParts := strings.Split(k, "/")
 
-	d.AddHotword(snowboy.Hotword{
+	words := snowboy.Hotwords{}
+	words.Add(snowboy.Hotword{
 		Model: os.Args[2],
 		Sensitivity: 0.5,
 		Keyword: snowboy.Keyword(kParts[len(kParts) - 1]),
 	})
+
+	d := snowboy.NewDetector(os.Args[1], words)
+	d.SetAudioGain(1.0)
+	defer d.Close()
 
 	wav, err := ioutil.ReadFile(os.Args[3])
 	if err != nil {
