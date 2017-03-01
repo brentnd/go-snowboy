@@ -96,7 +96,18 @@ func (d *Detector) ReadAndDetect(data io.Reader) (err error) {
 	return d.route(d.runDetection(bytes))
 }
 
+func (d *Detector) AudioFormat() (sampleRate, numChannels, bitsPerSample int) {
+	d.initialize()
+	sampleRate = d.raw.SampleRate()
+	numChannels = d.raw.NumChannels()
+	bitsPerSample = d.raw.BitsPerSample()
+	return
+}
+
 func (d *Detector) initialize() {
+	if d.initialized {
+		return
+	}
 	d.raw = snowboydetect.NewSnowboyDetect(d.ResourceFile, d.modelStr)
 	d.raw.SetSensitivity(d.sensitivityStr)
 	d.raw.SetAudioGain(d.AudioGain)

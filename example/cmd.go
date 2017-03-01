@@ -26,6 +26,9 @@ func main() {
 		fmt.Println("silence detected")
 	})
 
+	sampleRate, numChannels, bitDepth := d.AudioFormat()
+	fmt.Printf("sample rate=%d, num channels=%d, bit depth=%d\n", sampleRate, numChannels, bitDepth)
+
 	f, err := os.Open(os.Args[3])
 	if err != nil {
 		panic(err)
