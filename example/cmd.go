@@ -22,6 +22,10 @@ func main() {
 
 	d.HandleFunc(snowboy.NewHotword(os.Args[2], 0.5), handleDetection)
 
+	d.HandleSilenceFunc(func(string) {
+		fmt.Println("silence detected")
+	})
+
 	f, err := os.Open(os.Args[3])
 	if err != nil {
 		panic(err)

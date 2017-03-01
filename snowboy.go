@@ -2,7 +2,6 @@ package snowboy
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"strconv"
@@ -69,6 +68,23 @@ func (d *Detector) HandleFunc(hotword Hotword, handler func(string)) {
 	d.Handle(hotword, handlerFunc(handler))
 }
 
+// Install a handler for when silence is detected
+func (d *Detector) HandleSilence(handler Handler) {
+	if d.handlers == nil {
+		d.handlers = make(map[int]handlerKeyword)
+	}
+	d.handlers[-2] = handlerKeyword{
+		Handler: handler,
+		keyword: "silence",
+	}
+}
+
+// Installs a handle for when silence is detected based on the func argument
+// instead of the Handler interface
+func (d *Detector) HandleSilenceFunc(handler func(string)) {
+	d.HandleSilence(handlerFunc(handler))
+}
+
 // Reads from data and calls previously installed handlers when detection occurs
 func (d *Detector) ReadAndDetect(data io.Reader) (err error) {
 	d.initialize()
@@ -77,8 +93,7 @@ func (d *Detector) ReadAndDetect(data io.Reader) (err error) {
 	if err != nil {
 		return
 	}
-	d.route(d.runDetection(bytes))
-	return
+	return d.route(d.runDetection(bytes))
 }
 
 func (d *Detector) initialize() {
@@ -88,22 +103,18 @@ func (d *Detector) initialize() {
 	d.initialized = true
 }
 
-func (d *Detector) route(result int) {
-	if result == -2 {
-		// TODO: silence handler
-		fmt.Println("silence")
-	} else if result == -1 {
-		fmt.Println("error in snowboy")
-	} else if result == 0 {
-		fmt.Println("nothing detected")
-	} else if result > 0 {
+func (d *Detector) route(result int) error {
+	if result == -1 {
+		return SnowboyLibraryError
+	} else if result > 0 || result == -2 {
 		handlerKeyword, ok := d.handlers[result]
 		if ok {
 			handlerKeyword.call()
 		} else {
-			fmt.Println("no handler for result", result)
+			return NoHandler
 		}
 	}
+	return nil
 }
 
 func (d *Detector) runDetection(data []byte) int {
@@ -113,6 +124,9 @@ func (d *Detector) runDetection(data []byte) int {
 	ptr := snowboydetect.SwigcptrInt16_t(unsafe.Pointer(&data[0]))
 	return d.raw.RunDetection(ptr, len(data) / 2 /* len of int16 */)
 }
+
+var NoHandler = errors.New("No handler installed")
+var SnowboyLibraryError = errors.New("snowboy library error")
 
 // A Handler is used to handle when keywords are detected
 //
