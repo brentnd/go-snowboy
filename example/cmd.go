@@ -20,7 +20,7 @@ func main() {
 	d := snowboy.NewDetector(os.Args[1])
 	defer d.Close()
 
-	d.HandleFunc(snowboy.NewHotword(os.Args[2], 0.5), handleDetection)
+	d.HandleFunc(snowboy.NewDefaultHotword(os.Args[2]), handleDetection)
 
 	d.HandleSilenceFunc(func(string) {
 		fmt.Println("silence detected")

@@ -163,6 +163,12 @@ type Hotword struct {
 	Name        string
 }
 
+// Creates a hotword from model only, parsing the hotward name from the model filename
+// and using a sensitivity of 0.5
+func NewDefaultHotword(model string) Hotword {
+	return NewHotword(model, 0.5)
+}
+
 // Creates a hotword from model and sensitivity only, parsing
 // the hotward name from the model filename
 func NewHotword(model string, sensitivity float32) Hotword {
