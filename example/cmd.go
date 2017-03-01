@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 	"fmt"
-	"strings"
 
 	"github.com/brentnd/go-snowboy"
 )
@@ -18,24 +17,10 @@ func main() {
 		return
 	}
 
-	d := snowboy.Detector{
-		ResourceFile: os.Args[1],
-		AudioGain: 1.0,
-	}
+	d := snowboy.NewDetector(os.Args[1])
 	defer d.Close()
 
-	// Parse keyword from .umdl file path.
-	// If keyword is known (not command line), just use
-	// snowboy.Keyword("i know it already")
-	k := os.Args[2]
-	k = strings.TrimRight(k, ".umdl")
-	kParts := strings.Split(k, "/")
-
-	d.HandleFunc(snowboy.Hotword{
-		Model: os.Args[2],
-		Sensitivity: 0.5,
-		Name: kParts[len(kParts) - 1],
-	}, handleDetection)
+	d.HandleFunc(snowboy.NewHotword(os.Args[2], 0.5), handleDetection)
 
 	f, err := os.Open(os.Args[3])
 	if err != nil {

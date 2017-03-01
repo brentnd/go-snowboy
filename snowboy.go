@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"fmt"
 	"io/ioutil"
+	"strings"
+	"os"
 )
 
 type Handler interface {
@@ -36,6 +38,17 @@ type Hotword struct {
 	Name        string
 }
 
+func NewHotword(model string, sensitivity float32) Hotword {
+	h := Hotword{
+		Model: model,
+		Sensitivity: sensitivity,
+	}
+	name := strings.TrimRight(model, ".umdl")
+	nameParts := strings.Split(name, "/")
+	h.Name = nameParts[len(nameParts) - 1]
+	return h
+}
+
 type Detector struct {
 	raw            snowboydetect.SnowboyDetect
 	initialized    bool
@@ -44,6 +57,13 @@ type Detector struct {
 	sensitivityStr string
 	ResourceFile   string
 	AudioGain      float32
+}
+
+func NewDetector(resourceFile string) Detector {
+	return Detector{
+		ResourceFile: resourceFile,
+		AudioGain: 1.0,
+	}
 }
 
 func (d *Detector) initialize() {
