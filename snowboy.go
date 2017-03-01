@@ -10,9 +10,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
-	"os"
 )
 
+// A Handler is used to handle when keywords are detected
+//
+// Detected will be call with the keyword string
 type Handler interface {
 	Detected(string)
 }
@@ -26,18 +28,25 @@ func (h handlerKeyword) call() {
 	h.Handler.Detected(h.keyword)
 }
 
-type HandlerFunc func(string)
+type handlerFunc func(string)
 
-func (f HandlerFunc) Detected(keyword string) {
+func (f handlerFunc) Detected(keyword string) {
 	f(keyword)
 }
 
+// A Hotword represents a model filename and sensitivity for a snowboy detectable word
+//
+// Model is the filename for the .umdl file
+// Sensitivity is the sensitivity of this specific hotword
+// Name is what will be used in calls to Handler.Detected(string)
 type Hotword struct {
 	Model       string
 	Sensitivity float32
 	Name        string
 }
 
+// Creates a hotword from model and sensitivity only, parsing
+// the hotward name from the model filename
 func NewHotword(model string, sensitivity float32) Hotword {
 	h := Hotword{
 		Model: model,
@@ -49,6 +58,7 @@ func NewHotword(model string, sensitivity float32) Hotword {
 	return h
 }
 
+// Detector is holds the context and base impl for snowboy audio detection
 type Detector struct {
 	raw            snowboydetect.SnowboyDetect
 	initialized    bool
@@ -59,6 +69,8 @@ type Detector struct {
 	AudioGain      float32
 }
 
+// Creates a standard Detector from a resources file
+// Gives a default gain of 1.0
 func NewDetector(resourceFile string) Detector {
 	return Detector{
 		ResourceFile: resourceFile,
@@ -73,6 +85,10 @@ func (d *Detector) initialize() {
 	d.initialized = true
 }
 
+// Close handles cleanup required by snowboy library
+//
+// Clients must call Close on detectors after doing any detection
+// Returns error if Detector was never used
 func (d *Detector) Close() error {
 	if d.initialized {
 		d.initialized = false
@@ -109,6 +125,7 @@ func (d *Detector) route(result int) {
 	}
 }
 
+// Install a handler for the given hotword
 func (d *Detector) Handle(hotword Hotword, handler Handler) {
 	if len(d.handlers) > 0 {
 		d.modelStr += ","
@@ -125,10 +142,13 @@ func (d *Detector) Handle(hotword Hotword, handler Handler) {
 	}
 }
 
+// Installs a handle for the given hotword based on the func argument
+// instead of the Handler interface
 func (d *Detector) HandleFunc(hotword Hotword, handler func(string)) {
-	d.Handle(hotword, HandlerFunc(handler))
+	d.Handle(hotword, handlerFunc(handler))
 }
 
+// Reads from data and calls previously installed handlers when detection occurs
 func (d *Detector) ReadAndDetect(data io.Reader) (err error) {
 	d.initialize()
 	// TODO: buffer data into chunks
