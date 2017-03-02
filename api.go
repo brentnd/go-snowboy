@@ -1,5 +1,15 @@
 package snowboy
 
+import (
+	"net/http"
+	"encoding/json"
+	"bytes"
+	"errors"
+	"io/ioutil"
+	"encoding/base64"
+	"fmt"
+)
+
 const(
 	EndpointBase = "https://snowboy.kitt.ai/api/"
 	EndpointVersion = "v1"
@@ -57,4 +67,34 @@ type TrainRequest struct {
 	AgeGroup       AgeGroup    `json:"age_group"`
 	Gender         Gender      `json:"gender"`
 	Microphone     string      `json:"microphone"`
+}
+
+func (t *TrainRequest) AddWave(filename string) {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+	enc := base64.StdEncoding.EncodeToString(data)
+	t.VoiceSamples = append(t.VoiceSamples, VoiceSample{
+		Wave: enc,
+	})
+}
+
+func (t *TrainRequest) Train() ([]byte, error) {
+	data, err := json.Marshal(t)
+	if err != nil {
+		return []byte{}, err
+	}
+	fmt.Println("sending", string(data), "to ", EndpointTrain)
+	resp, err := http.DefaultClient.Post(EndpointTrain, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		return []byte{}, err
+	}
+	defer resp.Body.Close()
+	d, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println(resp.StatusCode, resp.Status, string(d))
+	if resp.StatusCode != 200 {
+		return []byte{}, errors.New("non-200 returned from kitt.ai")
+	}
+	return ioutil.ReadAll(resp.Body)
 }
