@@ -3,9 +3,9 @@ package snowboy
 import (
 	"errors"
 	"io"
-	"io/ioutil"
 	"strconv"
 	"strings"
+	"time"
 	"unsafe"
 
 	"github.com/Kitt-AI/snowboy/swig/Go"
@@ -86,14 +86,28 @@ func (d *Detector) HandleSilenceFunc(handler func(string)) {
 }
 
 // Reads from data and calls previously installed handlers when detection occurs
-func (d *Detector) ReadAndDetect(data io.Reader) (err error) {
+func (d *Detector) ReadAndDetect(data io.Reader) error {
 	d.initialize()
-	// TODO: buffer data into chunks
-	bytes, err := ioutil.ReadAll(data)
-	if err != nil {
-		return
+	bytes := make([]byte, 2048)
+	for {
+		n, err := data.Read(bytes)
+		if err != nil {
+			if err == io.EOF {
+				// Run detection on remaining bytes
+				return d.route(d.runDetection(bytes))
+			}
+			return err
+		}
+		if n == 0 {
+			// No data to read yet, but not eof so wait and try later
+			time.Sleep(300 * time.Millisecond)
+			continue
+		}
+		err = d.route(d.runDetection(bytes))
+		if err != nil {
+			return err
+		}
 	}
-	return d.route(d.runDetection(bytes))
 }
 
 func (d *Detector) AudioFormat() (sampleRate, numChannels, bitsPerSample int) {
