@@ -72,6 +72,15 @@ func (d *Detector) Close() error {
 	}
 }
 
+// Calls previously installed handlers if hotwords are detected in data
+//
+// Does not chunk data because it is all available. Assumes entire
+// length of data is filled and will only call one handler
+func (d *Detector) Detect(data []byte) error {
+	d.initialize()
+	return d.route(d.runDetection(data))
+}
+
 // Install a handler for the given hotword
 func (d *Detector) Handle(hotword Hotword, handler Handler) {
 	if len(d.handlers) > 0 {

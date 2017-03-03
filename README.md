@@ -35,4 +35,3 @@ usage: ./build/snowboy-detect <resource> <keyword.umdl> <audio file>
 
 ## TODO
 * Support other functions of SnowboyDetect (Reset, GetSensitivity, UpdateModel, NumHotwords)
-* Add DetectFromWav(io.Reader) to run detection on a file
