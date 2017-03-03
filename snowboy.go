@@ -28,6 +28,7 @@ type Detector struct {
 	raw              snowboydetect.SnowboyDetect
 	initialized      bool
 	handlers         map[snowboyResult]handlerKeyword
+	silenceHandler  *handlerKeyword
 	modelStr         string
 	sensitivityStr   string
 	silenceThreshold time.Duration
@@ -98,11 +99,8 @@ func (d *Detector) HandleFunc(hotword Hotword, handler func(string)) {
 //
 // threshold (time.Duration) determined how long silence can occur before callback is called
 func (d *Detector) HandleSilence(threshold time.Duration, handler Handler) {
-	if d.handlers == nil {
-		d.handlers = make(map[snowboyResult]handlerKeyword)
-	}
 	d.silenceThreshold = threshold
-	d.handlers[snowboyResultSilence] = handlerKeyword{
+	d.silenceHandler = &handlerKeyword{
 		Handler: handler,
 		keyword: "silence",
 	}
@@ -160,13 +158,14 @@ func (d *Detector) initialize() {
 func (d *Detector) route(result snowboyResult) error {
 	if result == snowboyResultError {
 		return SnowboyLibraryError
+	} else if result == snowboyResultSilence {
+		if d.silenceElapsed >= d.silenceThreshold && d.silenceHandler != nil {
+			d.silenceElapsed = 0
+			d.silenceHandler.call()
+		}
 	} else if result != snowboyResultNoDetection {
 		handlerKeyword, ok := d.handlers[result]
 		if ok {
-			if result == snowboyResultSilence && d.silenceElapsed < d.silenceThreshold {
-				// Skip silence callback because threshold has not be surpassed
-				return nil
-			}
 			// Reset silence elapse because it's got called
 			d.silenceElapsed = 0
 			handlerKeyword.call()
