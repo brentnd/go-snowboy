@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"fmt"
+	"time"
 
 	"github.com/brentnd/go-snowboy"
 )
@@ -22,7 +23,7 @@ func main() {
 
 	d.HandleFunc(snowboy.NewDefaultHotword(os.Args[2]), handleDetection)
 
-	d.HandleSilenceFunc(func(string) {
+	d.HandleSilenceFunc(500 * time.Millisecond, func(string) {
 		fmt.Println("silence detected")
 	})
 

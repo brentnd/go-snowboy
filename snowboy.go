@@ -11,15 +11,24 @@ import (
 	"github.com/Kitt-AI/snowboy/swig/Go"
 )
 
+type snowboyResult int
+const (
+	snowboyResultSilence snowboyResult = -2
+	snowboyResultError                 = -1
+	snowboyResultNoDetection           = 0
+)
+
 // Detector is holds the context and base impl for snowboy audio detection
 type Detector struct {
-	raw            snowboydetect.SnowboyDetect
-	initialized    bool
-	handlers       map[int]handlerKeyword
-	modelStr       string
-	sensitivityStr string
-	ResourceFile   string
-	AudioGain      float32
+	raw              snowboydetect.SnowboyDetect
+	initialized      bool
+	handlers         map[snowboyResult]handlerKeyword
+	modelStr         string
+	sensitivityStr   string
+	silenceThreshold time.Duration
+	silenceElapsed   time.Duration
+	ResourceFile     string
+	AudioGain        float32
 }
 
 // Creates a standard Detector from a resources file
@@ -54,9 +63,9 @@ func (d *Detector) Handle(hotword Hotword, handler Handler) {
 	d.modelStr += hotword.Model
 	d.sensitivityStr += strconv.FormatFloat(float64(hotword.Sensitivity), 'f', 2, 64)
 	if d.handlers == nil {
-		d.handlers = make(map[int]handlerKeyword)
+		d.handlers = make(map[snowboyResult]handlerKeyword)
 	}
-	d.handlers[len(d.handlers) + 1] = handlerKeyword{
+	d.handlers[snowboyResult(len(d.handlers) + 1)] = handlerKeyword{
 		Handler: handler,
 		keyword: hotword.Name,
 	}
@@ -69,11 +78,12 @@ func (d *Detector) HandleFunc(hotword Hotword, handler func(string)) {
 }
 
 // Install a handler for when silence is detected
-func (d *Detector) HandleSilence(handler Handler) {
+func (d *Detector) HandleSilence(threshold time.Duration, handler Handler) {
 	if d.handlers == nil {
-		d.handlers = make(map[int]handlerKeyword)
+		d.handlers = make(map[snowboyResult]handlerKeyword)
 	}
-	d.handlers[-2] = handlerKeyword{
+	d.silenceThreshold = threshold
+	d.handlers[snowboyResultSilence] = handlerKeyword{
 		Handler: handler,
 		keyword: "silence",
 	}
@@ -81,8 +91,8 @@ func (d *Detector) HandleSilence(handler Handler) {
 
 // Installs a handle for when silence is detected based on the func argument
 // instead of the Handler interface
-func (d *Detector) HandleSilenceFunc(handler func(string)) {
-	d.HandleSilence(handlerFunc(handler))
+func (d *Detector) HandleSilenceFunc(threshold time.Duration, handler func(string)) {
+	d.HandleSilence(threshold, handlerFunc(handler))
 }
 
 // Reads from data and calls previously installed handlers when detection occurs
@@ -128,12 +138,18 @@ func (d *Detector) initialize() {
 	d.initialized = true
 }
 
-func (d *Detector) route(result int) error {
-	if result == -1 {
+func (d *Detector) route(result snowboyResult) error {
+	if result == snowboyResultError {
 		return SnowboyLibraryError
-	} else if result > 0 || result == -2 {
+	} else if result != snowboyResultNoDetection {
 		handlerKeyword, ok := d.handlers[result]
 		if ok {
+			if result == snowboyResultSilence && d.silenceElapsed < d.silenceThreshold {
+				// Skip silence callback because threshold has not be surpassed
+				return nil
+			}
+			// Reset silence elapse because it's got called
+			d.silenceElapsed = 0
 			handlerKeyword.call()
 		} else {
 			return NoHandler
@@ -142,12 +158,21 @@ func (d *Detector) route(result int) error {
 	return nil
 }
 
-func (d *Detector) runDetection(data []byte) int {
+func (d *Detector) runDetection(data []byte) snowboyResult {
 	if len(data) == 0 {
 		return 0
 	}
 	ptr := snowboydetect.SwigcptrInt16_t(unsafe.Pointer(&data[0]))
-	return d.raw.RunDetection(ptr, len(data) / 2 /* len of int16 */)
+	result := snowboyResult(d.raw.RunDetection(ptr, len(data) / 2 /* len of int16 */))
+	if result == snowboyResultSilence {
+		sampleRate, numChannels, bitDepth := d.AudioFormat()
+		dataElapseTime := len(data) * int(time.Second) / (numChannels * (bitDepth / 8) * sampleRate)
+		d.silenceElapsed += time.Duration(dataElapseTime)
+	} else {
+		// Reset silence elapse duration because non-silence was detected
+		d.silenceElapsed = 0
+	}
+	return result
 }
 
 var NoHandler = errors.New("No handler installed")
