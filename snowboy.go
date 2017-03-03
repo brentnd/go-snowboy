@@ -27,7 +27,7 @@ var (
 type Detector struct {
 	raw              snowboydetect.SnowboyDetect
 	initialized      bool
-	handlers         map[snowboyResult]handlerKeyword
+	handlers         []handlerKeyword
 	silenceHandler  *handlerKeyword
 	modelStr         string
 	sensitivityStr   string
@@ -74,19 +74,16 @@ func (d *Detector) Close() error {
 
 // Install a handler for the given hotword
 func (d *Detector) Handle(hotword Hotword, handler Handler) {
-	if d.handlers == nil {
-		d.handlers = make(map[snowboyResult]handlerKeyword)
-	}
 	if len(d.handlers) > 0 {
 		d.modelStr += ","
 		d.sensitivityStr += ","
 	}
 	d.modelStr += hotword.Model
 	d.sensitivityStr += strconv.FormatFloat(float64(hotword.Sensitivity), 'f', 2, 64)
-	d.handlers[snowboyResult(len(d.handlers) + 1)] = handlerKeyword{
+	d.handlers = append(d.handlers, handlerKeyword{
 		Handler: handler,
 		keyword: hotword.Name,
-	}
+	})
 }
 
 // Installs a handle for the given hotword based on the func argument
@@ -164,11 +161,8 @@ func (d *Detector) route(result snowboyResult) error {
 			d.silenceHandler.call()
 		}
 	} else if result != snowboyResultNoDetection {
-		handlerKeyword, ok := d.handlers[result]
-		if ok {
-			// Reset silence elapse because it's got called
-			d.silenceElapsed = 0
-			handlerKeyword.call()
+		if len(d.handlers) >= int(result) {
+			d.handlers[int(result) - 1].call()
 		} else {
 			return NoHandler
 		}
