@@ -32,6 +32,3 @@ usage: ./build/snowboy-detect <resource> <keyword.umdl> <audio file>
 
 ### See Also
 `Makefile` has some standard targets to do `go build` steps
-
-## TODO
-* Support other functions of SnowboyDetect (Reset, GetSensitivity, UpdateModel, NumHotwords)

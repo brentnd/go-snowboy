@@ -151,6 +151,33 @@ func (d *Detector) ReadAndDetect(data io.Reader) error {
 	}
 }
 
+// Resets the detection. The underlying snowboy object handles voice
+// activity detection (VAD) internally, but if you are using an external
+// VAD, you should call Reset() whenever you see the segment end.
+func (d *Detector) Reset() bool {
+	d.initialize()
+	return d.raw.Reset()
+}
+
+// Applies a fixed gain to the input audio. In case you have a very weak
+// microphone, you can use this function to boost input audio level.
+func (d *Detector) SetAudioGain(gain float32) {
+	d.initialize()
+	d.raw.SetAudioGain(gain)
+}
+
+// Returns the number of loaded hotwords
+func (d *Detector) NumNotwords() int {
+	d.initialize()
+	return d.raw.NumHotwords()
+}
+
+// Applies or removes frontend audio processing
+func (d *Detector) ApplyFrontend(apply bool) {
+	d.initialize()
+	d.raw.ApplyFrontend(apply)
+}
+
 func (d *Detector) initialize() {
 	if d.initialized {
 		return
