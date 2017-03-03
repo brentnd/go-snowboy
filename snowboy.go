@@ -18,6 +18,11 @@ const (
 	snowboyResultNoDetection           = 0
 )
 
+var (
+	NoHandler = errors.New("No handler installed")
+	SnowboyLibraryError = errors.New("snowboy library error")
+)
+
 // Detector is holds the context and base impl for snowboy audio detection
 type Detector struct {
 	raw              snowboydetect.SnowboyDetect
@@ -32,12 +37,24 @@ type Detector struct {
 }
 
 // Creates a standard Detector from a resources file
+//
 // Gives a default gain of 1.0
 func NewDetector(resourceFile string) Detector {
 	return Detector{
 		ResourceFile: resourceFile,
 		AudioGain: 1.0,
 	}
+}
+
+// Fetch the format for the expected audio input
+//
+// Returns sample rate, number of channels, and bit depth
+func (d *Detector) AudioFormat() (sampleRate, numChannels, bitsPerSample int) {
+	d.initialize()
+	sampleRate = d.raw.SampleRate()
+	numChannels = d.raw.NumChannels()
+	bitsPerSample = d.raw.BitsPerSample()
+	return
 }
 
 // Close handles cleanup required by snowboy library
@@ -78,6 +95,8 @@ func (d *Detector) HandleFunc(hotword Hotword, handler func(string)) {
 }
 
 // Install a handler for when silence is detected
+//
+// threshold (time.Duration) determined how long silence can occur before callback is called
 func (d *Detector) HandleSilence(threshold time.Duration, handler Handler) {
 	if d.handlers == nil {
 		d.handlers = make(map[snowboyResult]handlerKeyword)
@@ -91,11 +110,19 @@ func (d *Detector) HandleSilence(threshold time.Duration, handler Handler) {
 
 // Installs a handle for when silence is detected based on the func argument
 // instead of the Handler interface
+//
+// threshold (time.Duration) determined how long silence can occur before callback is called
 func (d *Detector) HandleSilenceFunc(threshold time.Duration, handler func(string)) {
 	d.HandleSilence(threshold, handlerFunc(handler))
 }
 
 // Reads from data and calls previously installed handlers when detection occurs
+//
+// Blocks while reading from data in chunks of 2048 bytes. Data examples include
+// file, pipe from Stdout of exec, response from http call, any reader really.
+//
+// *Note, be careful with using byte.Buffer for data. When io.EOF is received from
+// a read call on data, ReadAndDetect will exit
 func (d *Detector) ReadAndDetect(data io.Reader) error {
 	d.initialize()
 	bytes := make([]byte, 2048)
@@ -118,14 +145,6 @@ func (d *Detector) ReadAndDetect(data io.Reader) error {
 			return err
 		}
 	}
-}
-
-func (d *Detector) AudioFormat() (sampleRate, numChannels, bitsPerSample int) {
-	d.initialize()
-	sampleRate = d.raw.SampleRate()
-	numChannels = d.raw.NumChannels()
-	bitsPerSample = d.raw.BitsPerSample()
-	return
 }
 
 func (d *Detector) initialize() {
@@ -174,11 +193,6 @@ func (d *Detector) runDetection(data []byte) snowboyResult {
 	}
 	return result
 }
-
-var (
-	NoHandler = errors.New("No handler installed")
-	SnowboyLibraryError = errors.New("snowboy library error")
-)
 
 // A Handler is used to handle when keywords are detected
 //

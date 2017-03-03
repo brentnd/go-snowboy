@@ -15,7 +15,23 @@ const(
 	EndpointVersion = "v1"
 	EndpointTrain = EndpointBase + EndpointVersion + "/train"
 	EndpointImprove = EndpointBase + EndpointVersion + "/improve"
+)
 
+type AgeGroup string
+const (
+	AgeGroup0s AgeGroup = "0_9"
+	AgeGroup10s         = "10_19"
+	AgeGroup20s         = "20_29"
+	AgeGroup30s         = "30_39"
+	AgeGroup40s         = "40_49"
+	AgeGroup50s         = "50_59"
+	AgeGroup60plus      = "60+"
+)
+
+type Gender string
+const (
+	GenderMale Gender = "M"
+	GenderFemale      = "F"
 )
 
 type Language string
@@ -38,27 +54,6 @@ const (
 	LanguageOther           = "ot"
 )
 
-type AgeGroup string
-const (
-	AgeGroup0s AgeGroup = "0_9"
-	AgeGroup10s         = "10_19"
-	AgeGroup20s         = "20_29"
-	AgeGroup30s         = "30_39"
-	AgeGroup40s         = "40_49"
-	AgeGroup50s         = "50_59"
-	AgeGroup60plus      = "60+"
-)
-
-type Gender string
-const (
-	GenderMale Gender = "M"
-	GenderFemale      = "F"
-)
-
-type VoiceSample struct {
-	Wave string `json:"wave"`
-}
-
 type TrainRequest struct {
 	VoiceSamples []VoiceSample `json:"voice_samples"`
 	Token          string      `json:"token"`
@@ -67,6 +62,10 @@ type TrainRequest struct {
 	AgeGroup       AgeGroup    `json:"age_group"`
 	Gender         Gender      `json:"gender"`
 	Microphone     string      `json:"microphone"`
+}
+
+type VoiceSample struct {
+	Wave string `json:"wave"`
 }
 
 func (t *TrainRequest) AddWave(filename string) {
