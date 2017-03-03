@@ -16,24 +16,23 @@ See https://godoc.org/github.com/brentnd/go-snowboy
 
 ## Example
 
-Example usage in `example/cmd.go`, `example/fixed.go`.
+Example hotword detection usage in `example/detect.go`.
+Example API hotword training usage in `example/api.go`.
 
 ### Building
 ```
-go build -o build/detect example/cmd.go
+go build -o build/snowboy-detect example/detect.go
+go build -o build/snowboy-api example/api.go
 ```
 
 ### Running
 ```
-usage: ./build/detect <resource> <keyword.umdl> <audio file>
+usage: ./build/snowboy-detect <resource> <keyword.umdl> <audio file>
 ```
 
 ### See Also
 `Makefile` has some standard targets to do `go build` steps
 
 ## TODO
-* Support other functions of SnowboyDetect (Reset, GetSensitivity, UpdateModel, NumHotwords, SampleRate, NumChannels, BitsPerSample)
-* Support overloads for RunDetection, Go-style
-* Add net/http server style callback registration for different keywords
+* Support other functions of SnowboyDetect (Reset, GetSensitivity, UpdateModel, NumHotwords)
 * Add DetectFromWav(io.Reader) to run detection on a file
-* If possible, clean up the way Keywords are declared and returned. Use just plain strings?
