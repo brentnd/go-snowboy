@@ -56,15 +56,15 @@ func (d *Detector) Close() error {
 
 // Install a handler for the given hotword
 func (d *Detector) Handle(hotword Hotword, handler Handler) {
+	if d.handlers == nil {
+		d.handlers = make(map[snowboyResult]handlerKeyword)
+	}
 	if len(d.handlers) > 0 {
 		d.modelStr += ","
 		d.sensitivityStr += ","
 	}
 	d.modelStr += hotword.Model
 	d.sensitivityStr += strconv.FormatFloat(float64(hotword.Sensitivity), 'f', 2, 64)
-	if d.handlers == nil {
-		d.handlers = make(map[snowboyResult]handlerKeyword)
-	}
 	d.handlers[snowboyResult(len(d.handlers) + 1)] = handlerKeyword{
 		Handler: handler,
 		keyword: hotword.Name,
@@ -175,8 +175,10 @@ func (d *Detector) runDetection(data []byte) snowboyResult {
 	return result
 }
 
-var NoHandler = errors.New("No handler installed")
-var SnowboyLibraryError = errors.New("snowboy library error")
+var (
+	NoHandler = errors.New("No handler installed")
+	SnowboyLibraryError = errors.New("snowboy library error")
+)
 
 // A Handler is used to handle when keywords are detected
 //
