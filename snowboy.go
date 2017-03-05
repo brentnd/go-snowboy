@@ -182,6 +182,9 @@ func (d *Detector) initialize() {
 	if d.initialized {
 		return
 	}
+	if d.modelStr == "" {
+		panic(errors.New("no models set for detector"))
+	}
 	d.raw = snowboydetect.NewSnowboyDetect(d.ResourceFile, d.modelStr)
 	d.raw.SetSensitivity(d.sensitivityStr)
 	d.raw.SetAudioGain(d.AudioGain)
