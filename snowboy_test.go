@@ -1,14 +1,14 @@
 package snowboy
 
 import (
-	"os"
-	"time"
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"os"
+	"testing"
+	"time"
 )
 
 const (
-	resourceFile = "build/common.res"
+	resourceFile     = "build/common.res"
 	alexaKeywordFile = "build/alexa.umdl"
 )
 
@@ -40,7 +40,7 @@ func TestDetector_HandleSilenceFunc(t *testing.T) {
 	d.Handle(NewDefaultHotword(alexaKeywordFile), nil)
 
 	handled := false
-	d.HandleSilenceFunc(1 * time.Second, func(keyword string) {
+	d.HandleSilenceFunc(1*time.Second, func(keyword string) {
 		handled = true
 	})
 

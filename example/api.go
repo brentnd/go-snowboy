@@ -1,8 +1,8 @@
 package main
 
 import (
-	"os"
 	"fmt"
+	"os"
 
 	"github.com/brentnd/go-snowboy"
 	"io/ioutil"
@@ -14,11 +14,11 @@ func main() {
 		return
 	}
 	t := snowboy.TrainRequest{
-		Token: os.Args[1],
-		Name: os.Args[2],
-		Language: snowboy.LanguageEnglish,
-		AgeGroup: snowboy.AgeGroup20s,
-		Gender: snowboy.GenderMale,
+		Token:      os.Args[1],
+		Name:       os.Args[2],
+		Language:   snowboy.LanguageEnglish,
+		AgeGroup:   snowboy.AgeGroup20s,
+		Gender:     snowboy.GenderMale,
 		Microphone: "standard USB mic",
 	}
 	t.AddWave(os.Args[3])
@@ -28,5 +28,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	err = ioutil.WriteFile(t.Name + ".pmdl", pmdl, 0644)
+	err = ioutil.WriteFile(t.Name+".pmdl", pmdl, 0644)
 }

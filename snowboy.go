@@ -12,14 +12,15 @@ import (
 )
 
 type snowboyResult int
+
 const (
-	snowboyResultSilence snowboyResult = -2
-	snowboyResultError                 = -1
-	snowboyResultNoDetection           = 0
+	snowboyResultSilence     snowboyResult = -2
+	snowboyResultError                     = -1
+	snowboyResultNoDetection               = 0
 )
 
 var (
-	NoHandler = errors.New("No handler installed")
+	NoHandler           = errors.New("No handler installed")
 	SnowboyLibraryError = errors.New("snowboy library error")
 )
 
@@ -28,7 +29,7 @@ type Detector struct {
 	raw              snowboydetect.SnowboyDetect
 	initialized      bool
 	handlers         []handlerKeyword
-	silenceHandler  *handlerKeyword
+	silenceHandler   *handlerKeyword
 	modelStr         string
 	sensitivityStr   string
 	silenceThreshold time.Duration
@@ -43,7 +44,7 @@ type Detector struct {
 func NewDetector(resourceFile string) Detector {
 	return Detector{
 		ResourceFile: resourceFile,
-		AudioGain: 1.0,
+		AudioGain:    1.0,
 	}
 }
 
@@ -201,7 +202,7 @@ func (d *Detector) route(result snowboyResult) error {
 		}
 	} else if result != snowboyResultNoDetection {
 		if len(d.handlers) >= int(result) {
-			d.handlers[int(result) - 1].call()
+			d.handlers[int(result)-1].call()
 		} else {
 			return NoHandler
 		}
@@ -214,7 +215,7 @@ func (d *Detector) runDetection(data []byte) snowboyResult {
 		return 0
 	}
 	ptr := snowboydetect.SwigcptrInt16_t(unsafe.Pointer(&data[0]))
-	result := snowboyResult(d.raw.RunDetection(ptr, len(data) / 2 /* len of int16 */))
+	result := snowboyResult(d.raw.RunDetection(ptr, len(data)/2 /* len of int16 */))
 	if result == snowboyResultSilence {
 		sampleRate, numChannels, bitDepth := d.AudioFormat()
 		dataElapseTime := len(data) * int(time.Second) / (numChannels * (bitDepth / 8) * sampleRate)
@@ -271,11 +272,11 @@ func NewDefaultHotword(model string) Hotword {
 // the hotward name from the model filename
 func NewHotword(model string, sensitivity float32) Hotword {
 	h := Hotword{
-		Model: model,
+		Model:       model,
 		Sensitivity: sensitivity,
 	}
 	name := strings.TrimRight(model, ".umdl")
 	nameParts := strings.Split(name, "/")
-	h.Name = nameParts[len(nameParts) - 1]
+	h.Name = nameParts[len(nameParts)-1]
 	return h
 }
