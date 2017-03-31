@@ -1,8 +1,5 @@
 BUILD_DIR=build
 
-CXX=clang++
-CC=clang
-
 .PHONY: all clean cmd api test
 
 all: cmd api test
