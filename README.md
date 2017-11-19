@@ -23,11 +23,13 @@ Example API hotword training usage in `example/api.go`.
 ```
 go build -o build/snowboy-detect example/detect.go
 go build -o build/snowboy-api example/api.go
+go build -o build/snowboy-listen example/listen.go
 ```
 
 ### Running
 ```
 usage: ./build/snowboy-detect <resource> <keyword.umdl> <audio file>
+usage: ./build/snowboy-listen <resource> <keyword.umdl>
 ```
 
 ### See Also
