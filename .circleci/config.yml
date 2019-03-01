@@ -9,13 +9,12 @@ jobs:
       - run:
           name: Deps
           command: |
-            sudo apt-get install swig libatlas-base-dev libportaudio2
+            sudo apt-get install swig libatlas-base-dev
             go get -v -t -d ./...
       - run:
           name: Build
           command: |
             go build -o build/snowboy-detect example/detect.go
-            go build -o build/snowboy-listen example/listen.go
       - run:
           name: Resources
           command: cp -r $GOPATH/src/github.com/Kitt-AI/snowboy/resources/* build
