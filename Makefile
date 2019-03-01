@@ -12,7 +12,7 @@ api:
 	CXX=${CXX} CC=${CC} go build -o ${BUILD_DIR}/snowboy-api example/api.go
 
 test:
-	cp $$GOPATH/src/github.com/Kitt-AI/snowboy/resources/* ${BUILD_DIR}
+	cp -r $$GOPATH/src/github.com/Kitt-AI/snowboy/resources/* ${BUILD_DIR}
 	CXX=${CXX} CC=${CC} go test -cover -race
 
 clean:

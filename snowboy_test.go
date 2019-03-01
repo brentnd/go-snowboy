@@ -9,7 +9,7 @@ import (
 
 const (
 	resourceFile     = "build/common.res"
-	alexaKeywordFile = "build/alexa.umdl"
+	alexaKeywordFile = "build/alexa/alexa_02092017.umdl"
 )
 
 func TestNewDetector(t *testing.T) {

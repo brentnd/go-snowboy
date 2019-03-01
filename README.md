@@ -1,5 +1,7 @@
 # go-snowboy
 
+[![CircleCI](https://circleci.com/gh/brentnd/go-snowboy.svg?style=svg)](https://circleci.com/gh/brentnd/go-snowboy)
+
 The Go bindings for snowboy audio detection (https://github.com/Kitt-AI/snowboy) are generated using swig which
  creates a lot of extra types and uses calls with variable arguments. This makes writing integrations in golang difficult
  because the types aren't explicit. go-snowboy is intended to be a wrapper around the swig-generated Go code which will

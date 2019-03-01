@@ -1,0 +1,33 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.9
+    working_directory: /go/src/github.com/brentnd/go-snowboy
+    steps:
+      - checkout
+      - run:
+          name: Deps
+          command: |
+            sudo apt-get install swig libatlas-base-dev
+            go get -v -t -d ./...
+      - run:
+          name: Build
+          command: |
+            go build -o build/snowboy-detect example/detect.go
+      - run:
+          name: Resources
+          command: cp -r $GOPATH/src/github.com/Kitt-AI/snowboy/resources/* build
+      - run:
+          name: Unit Tests
+          command: go test -v -cover -race
+      - run:
+          name: Integration Test (Alexa)
+          command: |
+            ./build/snowboy-detect build/common.res build/alexa/alexa_02092017.umdl audio/alexa_request.wav | tee alexa.out
+            grep -q 'Keyword Detected: alexa_0209201' alexa.out
+      - run:
+          name: Integration Test (Silence)
+          command: |
+            ./build/snowboy-detect build/common.res build/models/snowboy.umdl audio/silence.wav | tee silence.out
+            grep -q 'silence detected' silence.out
