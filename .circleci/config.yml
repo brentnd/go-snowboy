@@ -8,7 +8,9 @@ jobs:
       - checkout
       - run:
           name: Deps
-          command: go get -v -t -d ./...
+          command: |
+            sudo apt-get install swig
+            go get -v -t -d ./...
       - run:
           name: Build
           command: |
