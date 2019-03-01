@@ -9,7 +9,7 @@ jobs:
       - run:
           name: Deps
           command: |
-            sudo apt-get install swig libatlas-base-dev libportaudio-dev
+            sudo apt-get install swig libatlas-base-dev libportaudio2
             go get -v -t -d ./...
       - run:
           name: Build
