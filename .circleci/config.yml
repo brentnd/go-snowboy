@@ -9,7 +9,7 @@ jobs:
       - run:
           name: Deps
           command: |
-            sudo apt-get install swig
+            sudo apt-get install swig libatlas-base-dev
             go get -v -t -d ./...
       - run:
           name: Build
