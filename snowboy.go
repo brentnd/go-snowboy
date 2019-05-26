@@ -131,7 +131,7 @@ func (d *Detector) HandleSilenceFunc(threshold time.Duration, handler func(strin
 func (d *Detector) ReadAndDetect(data io.Reader) error {
 	d.initialize()
 	bytes := make([]byte, 2048)
-	for {
+	for d.initialized {
 		n, err := data.Read(bytes)
 		if err != nil {
 			if err == io.EOF {
